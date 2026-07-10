@@ -17,12 +17,12 @@ from rest_framework.response import Response
 from django.db.models import Sum, F, Count, Q
 
 from .models import (
-    Product, Category, Supplier, User, StockLedger, Notification,
+    Product, Category, Supplier, User, StockLedger, Notification, PosSale,
 )
 from .serializers import (
     ProductSerializer, ProductDropdownSerializer,
     CategorySerializer, SupplierSerializer, UserSerializer,
-    StockLedgerSerializer, NotificationSerializer,
+    StockLedgerSerializer, NotificationSerializer, PosSaleSerializer,
     BestSellerSerializer, CategoryBreakdownSerializer,
     DailySalesChartSerializer, InventoryReportSerializer,
     LowStockAlertSerializer,
@@ -117,6 +117,47 @@ def integration_pos_sales_view(request):
         'total_sales': str(data.get('total_sales', '0.00')),
         'total_items': data.get('total_items', 0),
         'source': settings.POS_API_URL,
+    })
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+@csrf_exempt
+def pos_sales_view(request):
+    if request.method == 'POST':
+        serializer = PosSaleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # GET — return sales from the last 24h
+    from django.utils.timezone import now, timedelta
+    since = request.query_params.get('since')
+    if since:
+        from django.utils.dateparse import parse_datetime
+        since_dt = parse_datetime(since)
+    else:
+        since_dt = now() - timedelta(hours=24)
+    qs = PosSale.objects.filter(sold_at__gte=since_dt).order_by('-sold_at')
+    # Return id of latest seen sale so Dashboard can check for new ones
+    last_id = qs.first().id if qs.exists() else 0
+    return Response({
+        'sales': PosSaleSerializer(qs, many=True).data,
+        'last_id': last_id,
+    })
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def pos_sales_recent_view(request):
+    """Dashboard polls this to get only NEW sales since last_id."""
+    last_id = request.query_params.get('last_id', 0)
+    qs = PosSale.objects.filter(id__gt=last_id).order_by('-sold_at')
+    last_id_new = qs.first().id if qs.exists() else int(last_id)
+    return Response({
+        'sales': PosSaleSerializer(qs, many=True).data,
+        'last_id': last_id_new,
     })
 
 

@@ -325,3 +325,23 @@ class Notification(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class PosSale(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    order_id = models.CharField(max_length=50)
+    customer_name = models.CharField(max_length=200, blank=True, null=True)
+    cashier_name = models.CharField(max_length=100, blank=True, null=True)
+    item_count = models.IntegerField(default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    payment_method = models.CharField(max_length=50, blank=True, null=True)
+    sold_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'pos_sales'
+        managed = False
+        ordering = ['-sold_at']
+
+    def __str__(self):
+        return f'{self.order_id} - {self.total_amount}'

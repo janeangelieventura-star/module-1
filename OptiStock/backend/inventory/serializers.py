@@ -2,7 +2,7 @@ import re
 from rest_framework import serializers
 from .models import (
     Product, Category, Supplier, User, StockLedger,
-    StockAdjustment, Notification,
+    StockAdjustment, Notification, PosSale,
     VBestSeller, VCategoryBreakdown, VDailySalesChart,
     VInventoryReport, VLowStockAlert,
 )
@@ -159,3 +159,10 @@ class LowStockAlertSerializer(serializers.ModelSerializer):
     class Meta:
         model = VLowStockAlert
         fields = '__all__'
+
+
+class PosSaleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PosSale
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at']
