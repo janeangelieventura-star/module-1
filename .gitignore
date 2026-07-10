@@ -7,3 +7,7 @@ __pycache__/
 .aionrs/
 .opencode/
 backend/.env
+*.bak
+*.backup
+*.new
+*.orig

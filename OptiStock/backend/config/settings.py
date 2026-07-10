@@ -95,9 +95,10 @@ DATABASES = {
     }
 }
 
-# Aiven MySQL requires SSL — set DB_SSL_CA path in Render env
-if config('DB_SSL_CA', default=None):
-    DATABASES['default']['OPTIONS']['ssl'] = {'ca': config('DB_SSL_CA')}
+# Aiven MySQL requires SSL
+AIVEN_CA = BASE_DIR / 'aiven-ca.pem'
+if AIVEN_CA.exists():
+    DATABASES['default']['OPTIONS']['ssl'] = {'ca': str(AIVEN_CA)}
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
