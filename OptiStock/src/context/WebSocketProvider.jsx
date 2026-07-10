@@ -34,6 +34,24 @@ export function WebSocketProvider({ children }) {
   const timerRefs = useRef({});
   const lastToastTimeRef = useRef(0);
   const [notifRefreshKey, setNotifRefreshKey] = useState(0);
+  const posSaleIdRef = useRef(0);
+
+  const showToast = useCallback((message, icon) => {
+    const id = ++toastIdRef.current;
+    const now = Date.now();
+    if (now - lastToastTimeRef.current < DEBOUNCE_MS) {
+      Object.values(timerRefs.current).forEach(t => clearTimeout(t));
+      timerRefs.current = {};
+      setToasts([{ id, message, icon, isClosing: false }]);
+    } else {
+      setToasts(prev => [...prev, { id, message, icon, isClosing: false }]);
+    }
+    lastToastTimeRef.current = now;
+    timerRefs.current[id] = setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+      delete timerRefs.current[id];
+    }, TOAST_DURATION + 300);
+  }, []);
 
   const clearToast = useCallback((id) => {
     setToasts(prev => prev.map(t => t.id === id ? { ...t, isClosing: true } : t));
@@ -44,14 +62,10 @@ export function WebSocketProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    console.log('🔌 WebSocketProvider: Initializing WebSocket connection');
     wsManager.connect();
     const unsubscribe = wsManager.subscribe((data) => {
-      console.log('✅ WebSocket event received:', data);
       const id = ++toastIdRef.current;
       const now = Date.now();
-
-      // Debounce: if within DEBOUNCE_MS of the last toast, replace instead of stack
       if (now - lastToastTimeRef.current < DEBOUNCE_MS) {
         Object.values(timerRefs.current).forEach(t => clearTimeout(t));
         timerRefs.current = {};
@@ -65,14 +79,54 @@ export function WebSocketProvider({ children }) {
       }
       lastToastTimeRef.current = now;
       timerRefs.current[id] = setTimeout(() => clearToast(id), TOAST_DURATION);
-
       setNotifRefreshKey(prev => prev + 1);
     });
 
     return () => {
-      console.log('🧪 WebSocketProvider: Cleaning up');
       unsubscribe();
       wsManager.disconnect();
+    };
+  }, []);
+
+  // Poll for POS sales (real-time notification pag may bumile)
+  useEffect(() => {
+    let mounted = true;
+    let lastId = parseInt(localStorage.getItem('posSaleLastId') || '0', 10);
+
+    async function poll() {
+      try {
+        const base = import.meta.env.VITE_API_URL || '/api';
+        const res = await fetch(`${base}/pos-sales/recent/?last_id=${lastId}`, {
+          signal: AbortSignal.timeout(8000),
+        });
+        if (!mounted) return;
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.sales && data.sales.length > 0) {
+          lastId = data.last_id;
+          localStorage.setItem('posSaleLastId', String(lastId));
+          for (const sale of data.sales) {
+            if (!mounted) break;
+            showToast(
+              <span><CheckCircle2 size={18} className="text-[#7BB8A7] inline mr-2" />May bumili! ₱{sale.total_amount} — {sale.cashier_name || 'POS'}</span>,
+              null
+            );
+            setNotifRefreshKey(prev => prev + 1);
+          }
+        }
+      } catch {
+        // offline, retry later
+      }
+    }
+
+    // Start polling after 5s delay, then every 10s
+    const initialDelay = setTimeout(poll, 5000);
+    const interval = setInterval(poll, 10000);
+
+    return () => {
+      mounted = false;
+      clearTimeout(initialDelay);
+      clearInterval(interval);
     };
   }, []);
 
