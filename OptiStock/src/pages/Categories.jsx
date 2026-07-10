@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
-import Sidebar from "../components/Sidebar";
+import DashboardLayout, { useSidebar } from "../context/DashboardLayout";
 import NotificationDetailModal from "../components/NotificationDetailModal";
 import { useWebSocket } from "../context/WebSocketProvider";
 import {
@@ -18,7 +18,8 @@ import {
   ArrowDownAZ,
   Info,
   LogOut,
-  ArchiveRestore
+  ArchiveRestore,
+  Menu
 } from "lucide-react";
 
 function Categories() {
@@ -335,23 +336,22 @@ function Categories() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EFE9DF] font-sans flex text-[#1A1A1A] overflow-hidden">
+    <DashboardLayout>
       
-      {/* Background Subtle Overlays */}
-      <div className="absolute inset-0 z-0 opacity-[0.03] bg-[radial-gradient(#1A1A1A_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
-
-      {/* SIDEBAR */}
-      <Sidebar />
-
-      {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto relative z-10">
-        
-        {/* HEADER */}
-        <header className="flex items-center justify-between p-6 lg:px-10 border-b border-[#E7E5E4] bg-[#FAF7F2]/80 backdrop-blur-md sticky top-0 z-40">
+      {/* HEADER */}
+      <header className="flex items-center justify-between p-4 lg:p-6 lg:px-10 border-b border-[#E7E5E4] bg-[#FAF7F2]/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => useSidebar().toggleSidebar()}
+            className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-[#EFE9DF] transition-all cursor-pointer"
+          >
+            <Menu size={20} />
+          </button>
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#57534E]">Data Standardization</p>
-            <h1 className="text-2xl font-black tracking-tight text-[#1A1A1A]">Categories</h1>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#1A1A1A]">Categories</h1>
           </div>
+        </div>
 
           <div className="flex items-center gap-4">
             
@@ -584,7 +584,7 @@ function Categories() {
                 </div>
 
                 <div className="overflow-y-auto h-[500px] w-full custom-scrollbar relative z-10 bg-[#FFFFFF]">
-                  <table className="w-full text-left border-collapse table-fixed">
+                  <table className="w-full text-left border-collapse table-fixed responsive-table-simple">
                     <colgroup>
                       <col className="w-[30%]" />
                       <col className="w-[45%]" />
@@ -594,21 +594,21 @@ function Categories() {
                     <tbody className="divide-y divide-[#E7E5E4]">
                       {filteredAndSortedCategories.length > 0 ? filteredAndSortedCategories.map((category) => (
                         <tr key={category.id} className="hover:bg-[#FAF7F2]/50 transition-colors bg-[#FFFFFF] group">
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6" data-label="Name">
                             <span className="font-bold text-[#1A1A1A] flex items-center gap-2">
                               <Tags size={14} className="text-[#A8A29E]" />
                               {category.name}
                             </span>
                           </td>
-                          <td className="py-4 px-6 text-sm text-[#57534E] truncate">
+                          <td className="py-4 px-6 text-sm text-[#57534E] truncate" data-label="Description">
                             {category.description || <span className="italic opacity-50">No description provided</span>}
                           </td>
-                          <td className="py-4 px-6 text-center">
+                          <td className="py-4 px-6 text-center" data-label="Products">
                             <div className="inline-flex items-center justify-center min-w-[2.5rem] h-6 px-2 bg-[#EFE9DF] rounded-full text-xs font-black text-[#1A1A1A] border border-[#E7E5E4]">
                               {category.product_count}
                             </div>
                           </td>
-                          <td className="py-4 px-6 text-right">
+                          <td className="py-4 px-6 text-right" data-label="">
                             <div className="flex justify-end gap-2">
                               <button 
                                 onClick={() => openEditModal(category)}
@@ -648,7 +648,6 @@ function Categories() {
 
           </div>
         </div>
-      </main>
 
       {/* --- ADD / EDIT MODAL --- */}
       {isFormModalOpen && (
@@ -768,7 +767,7 @@ function Categories() {
       {/* --- TOAST NOTIFICATION (Supports Error and Success) --- */}
       {toast.show && (
         <div 
-          className={`fixed bottom-6 right-6 z-[110] bg-[#1A1A1A] text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden min-w-[320px] max-w-md origin-right ${
+          className={`fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-[110] bg-[#1A1A1A] text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden min-w-[320px] max-w-md origin-right ${
             toast.isClosing ? "animate-toast-out" : "animate-toast-in"
           }`}
         >
@@ -1017,7 +1016,7 @@ function Categories() {
         onMarkRead={markAsRead}
         onDelete={deleteNotification}
       />
-    </div>
+    </DashboardLayout>
   );
 }
 

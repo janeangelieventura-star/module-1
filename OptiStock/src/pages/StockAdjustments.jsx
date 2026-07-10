@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
-import Sidebar from "../components/Sidebar";
+import DashboardLayout, { useSidebar } from "../context/DashboardLayout";
 import NotificationDetailModal from "../components/NotificationDetailModal";
 import { useWebSocket } from "../context/WebSocketProvider";
 import {
@@ -20,7 +20,8 @@ import {
   LogOut,
   ArchiveRestore,
   Trash2,
-  Download
+  Download,
+  Menu
 } from "lucide-react";
 
 function StockAdjustments() {
@@ -294,22 +295,22 @@ function StockAdjustments() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EFE9DF] font-sans flex text-[#1A1A1A] overflow-hidden">
+    <DashboardLayout>
       
-      <div className="absolute inset-0 z-0 opacity-[0.03] bg-[radial-gradient(#1A1A1A_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
-
-      {/* SIDEBAR */}
-      <Sidebar />
-
-      {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto relative z-10">
-        
-        {/* HEADER */}
-        <header className="flex items-center justify-between p-6 lg:px-10 border-b border-[#E7E5E4] bg-[#FAF7F2]/80 backdrop-blur-md sticky top-0 z-40">
+      {/* HEADER */}
+      <header className="flex items-center justify-between p-4 lg:p-6 lg:px-10 border-b border-[#E7E5E4] bg-[#FAF7F2]/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => useSidebar().toggleSidebar()}
+            className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-[#EFE9DF] transition-all cursor-pointer"
+          >
+            <Menu size={20} />
+          </button>
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#57534E]">Audit Trail</p>
-            <h1 className="text-2xl font-black tracking-tight text-[#1A1A1A]">Stock Adjustments</h1>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#1A1A1A]">Stock Adjustments</h1>
           </div>
+        </div>
 
           <div className="flex items-center gap-4">
             
@@ -551,7 +552,7 @@ function StockAdjustments() {
                 </div>
 
                 <div className="overflow-y-auto h-[500px] w-full custom-scrollbar relative z-10 bg-[#FFFFFF]">
-                  <table className="w-full text-left border-collapse table-fixed">
+                  <table className="w-full text-left border-collapse table-fixed responsive-table-stock">
                     <colgroup>
                       <col className="w-[15%]" />
                       <col className="w-[30%]" />
@@ -562,11 +563,11 @@ function StockAdjustments() {
                     <tbody className="divide-y divide-[#E7E5E4]">
                       {filteredLogs.length > 0 ? filteredLogs.map((log) => (
                         <tr key={log.id} className="hover:bg-[#FAF7F2]/50 transition-colors bg-[#FFFFFF]">
-                          <td className="py-4 px-6 text-sm text-[#57534E] font-medium whitespace-nowrap">
+                          <td className="py-4 px-6 text-sm text-[#57534E] font-medium whitespace-nowrap" data-label="Date">
                             {log.created_at ? new Date(log.created_at).toLocaleString() : ''}
                           </td>
-                          <td className="py-4 px-6 font-bold text-[#1A1A1A]">{log.product_name}</td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6 font-bold text-[#1A1A1A]" data-label="Product">{log.product_name}</td>
+                          <td className="py-4 px-6" data-label="Type">
                             {log.type === "Stock In" ? (
                               <span className="flex items-center gap-1.5 w-fit text-[10px] font-black uppercase tracking-wider text-[#7BB8A7] bg-[#C3ECE3]/40 px-2.5 py-1 rounded-md border border-[#C3ECE3]">
                                 <ArrowUpRight size={14} strokeWidth={3} /> {log.type}
@@ -577,12 +578,12 @@ function StockAdjustments() {
                               </span>
                             )}
                           </td>
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6" data-label="Qty">
                             <span className={`text-base font-black ${log.type === "Stock In" ? "text-[#7BB8A7]" : "text-[#D96B5E]"}`}>
                               {log.type === "Stock In" ? "+" : "-"}{log.qty}
                             </span>
                           </td>
-                          <td className="py-4 px-6 text-sm text-[#57534E] italic">"{log.notes}"</td>
+                          <td className="py-4 px-6 text-sm text-[#57534E] italic" data-label="Notes">"{log.notes}"</td>
                         </tr>
                       )) : (
                         <tr>
@@ -601,7 +602,6 @@ function StockAdjustments() {
 
           </div>
         </div>
-      </main>
 
       {/* --- ADJUSTMENT MODAL --- */}
       {isModalOpen && (
@@ -741,7 +741,7 @@ function StockAdjustments() {
       {/* --- TOAST NOTIFICATION --- */}
       {toast.show && (
         <div 
-          className={`fixed bottom-6 right-6 z-[110] bg-[#1A1A1A] text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden min-w-[320px] origin-right ${
+          className={`fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-[110] bg-[#1A1A1A] text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden min-w-[320px] origin-right ${
             toast.isClosing ? "animate-toast-out" : "animate-toast-in"
           }`}
         >
@@ -981,7 +981,7 @@ function StockAdjustments() {
         onMarkRead={markAsRead}
         onDelete={deleteNotification}
       />
-    </div>
+    </DashboardLayout>
   );
 }
 

@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import DashboardLayout, { useSidebar } from "../context/DashboardLayout";
 import NotificationDetailModal from "../components/NotificationDetailModal";
 import {
   ClipboardList,
@@ -18,7 +18,8 @@ import {
   ChevronDown,
   Info,
   LogOut,
-  ArchiveRestore
+  ArchiveRestore,
+  Menu
 } from "lucide-react";
 import { api } from "../services/api";
 import { useWebSocket } from "../context/WebSocketProvider";
@@ -282,25 +283,25 @@ function Notifications() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EFE9DF] font-sans flex text-[#1A1A1A] overflow-hidden">
+    <DashboardLayout>
       
-      {/* Background Subtle Overlays */}
-      <div className="absolute inset-0 z-0 opacity-[0.03] bg-[radial-gradient(#1A1A1A_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
-
-      <Sidebar />
-
-      {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto relative z-10">
+      {/* --- FIXED STICKY WRAPPER (Header + Controls Pinagsama) --- */}
+      <div className="sticky top-0 z-40 flex flex-col">
         
-        {/* --- FIXED STICKY WRAPPER (Header + Controls Pinagsama) --- */}
-        <div className="sticky top-0 z-40 flex flex-col">
-          
-          {/* 1. Header Portion */}
-          <header className="flex items-center justify-between p-6 lg:px-10 border-b border-[#E7E5E4] bg-[#FAF7F2]">
+        {/* 1. Header Portion */}
+        <header className="flex items-center justify-between p-4 lg:p-6 lg:px-10 border-b border-[#E7E5E4] bg-[#FAF7F2]">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => useSidebar().toggleSidebar()}
+              className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-[#EFE9DF] transition-all cursor-pointer"
+            >
+              <Menu size={20} />
+            </button>
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#57534E]">System Alerts</p>
-              <h1 className="text-2xl font-black tracking-tight text-[#1A1A1A]">Notifications</h1>
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#1A1A1A]">Notifications</h1>
             </div>
+          </div>
 
             <div className="flex items-center gap-4">
               
@@ -591,7 +592,6 @@ function Notifications() {
           </div>
 
         </div>
-      </main>
 
       {/* --- NOTIFICATION DETAIL MODAL --- */}
       <NotificationDetailModal
@@ -651,7 +651,7 @@ function Notifications() {
       {/* --- TOAST NOTIFICATION (Supports Error and Success) --- */}
       {toast.show && (
         <div 
-          className={`fixed bottom-6 right-6 z-[110] bg-[#1A1A1A] text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden min-w-[320px] max-w-md origin-right ${
+          className={`fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-[110] bg-[#1A1A1A] text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden min-w-[320px] max-w-md origin-right ${
             toast.isClosing ? "animate-toast-out" : "animate-toast-in"
           }`}
         >
@@ -892,7 +892,7 @@ function Notifications() {
         .animate-toast-out { animation: toastOut 0.35s cubic-bezier(0.55, 0, 1, 0.4) forwards; }
         .animate-progress-bar { animation: progressBarShrink 5s linear forwards; }
       `}</style>
-    </div>
+    </DashboardLayout>
   );
 }
 

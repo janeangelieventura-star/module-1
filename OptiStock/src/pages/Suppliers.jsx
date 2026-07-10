@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
-import Sidebar from "../components/Sidebar";
+import DashboardLayout, { useSidebar } from "../context/DashboardLayout";
 import NotificationDetailModal from "../components/NotificationDetailModal";
 import { useWebSocket } from "../context/WebSocketProvider";
 import {
@@ -21,7 +21,8 @@ import {
   ArrowDownAZ,
   Info,
   LogOut,
-  ArchiveRestore
+  ArchiveRestore,
+  Menu
 } from "lucide-react";
 
 function Suppliers() {
@@ -371,22 +372,22 @@ function Suppliers() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EFE9DF] font-sans flex text-[#1A1A1A] overflow-hidden">
+    <DashboardLayout>
       
-      {/* Background Subtle Overlays */}
-      <div className="absolute inset-0 z-0 opacity-[0.03] bg-[radial-gradient(#1A1A1A_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
-
-      <Sidebar />
-
-      {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto relative z-10">
-        
-        {/* HEADER */}
-        <header className="flex items-center justify-between p-6 lg:px-10 border-b border-[#E7E5E4] bg-[#FAF7F2]/80 backdrop-blur-md sticky top-0 z-40">
+      {/* HEADER */}
+      <header className="flex items-center justify-between p-4 lg:p-6 lg:px-10 border-b border-[#E7E5E4] bg-[#FAF7F2]/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => useSidebar().toggleSidebar()}
+            className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-[#EFE9DF] transition-all cursor-pointer"
+          >
+            <Menu size={20} />
+          </button>
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#57534E]">Partner Directory</p>
-            <h1 className="text-2xl font-black tracking-tight text-[#1A1A1A]">Suppliers</h1>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#1A1A1A]">Suppliers</h1>
           </div>
+        </div>
 
           <div className="flex items-center gap-4">
             
@@ -622,7 +623,7 @@ function Suppliers() {
                 </div>
 
                 <div className="overflow-y-auto h-[500px] w-full custom-scrollbar relative z-10 bg-[#FFFFFF]">
-                  <table className="w-full text-left border-collapse table-fixed">
+                  <table className="w-full text-left border-collapse table-fixed responsive-table-simple">
                     <colgroup>
                       <col className="w-[25%]" />
                       <col className="w-[25%]" />
@@ -634,7 +635,7 @@ function Suppliers() {
                       {filteredAndSortedSuppliers.length > 0 ? filteredAndSortedSuppliers.map((supplier) => (
                         <tr key={supplier.id} className="hover:bg-[#FAF7F2]/50 transition-colors bg-[#FFFFFF] group">
                           
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6" data-label="Company">
                             <div className="flex flex-col">
                               <span className="font-bold text-[#1A1A1A] text-base">{supplier.company_name}</span>
                               <span className="text-xs text-[#57534E] flex items-center gap-1 mt-0.5">
@@ -643,7 +644,7 @@ function Suppliers() {
                             </div>
                           </td>
 
-                          <td className="py-4 px-6">
+                          <td className="py-4 px-6" data-label="Contact">
                             <div className="flex flex-col gap-1.5 text-sm text-[#57534E]">
                               <div className="flex items-center gap-2">
                                 <Mail size={14} className="text-[#A8A29E]" /> {supplier.email || "-"}
@@ -654,20 +655,20 @@ function Suppliers() {
                             </div>
                           </td>
 
-                          <td className="py-4 px-6 text-sm text-[#57534E] truncate" title={supplier.address}>
+                          <td className="py-4 px-6 text-sm text-[#57534E] truncate" title={supplier.address} data-label="Address">
                             <div className="flex items-center gap-2">
                               <MapPin size={14} className="text-[#A8A29E] shrink-0" />
                               <span className="truncate">{supplier.address || "No address provided"}</span>
                             </div>
                           </td>
 
-                          <td className="py-4 px-6 text-center">
+                          <td className="py-4 px-6 text-center" data-label="Products">
                             <div className="inline-flex items-center justify-center min-w-[2.5rem] h-6 px-2 bg-[#EFE9DF] rounded-full text-xs font-black text-[#1A1A1A] border border-[#E7E5E4]">
                               {supplier.products_supplied}
                             </div>
                           </td>
 
-                          <td className="py-4 px-6 text-right">
+                          <td className="py-4 px-6 text-right" data-label="">
                             <div className="flex justify-end gap-2">
                               <button 
                                 onClick={() => openEditModal(supplier)}
@@ -866,7 +867,7 @@ function Suppliers() {
         {/* --- TOAST NOTIFICATION (Supports Error and Success) --- */}
         {toast.show && (
           <div 
-          className={`fixed bottom-6 right-6 z-[110] bg-[#1A1A1A] text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden min-w-[320px] max-w-md origin-right ${
+          className={`fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-[110] bg-[#1A1A1A] text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden min-w-[320px] max-w-md origin-right ${
             toast.isClosing ? "animate-toast-out" : "animate-toast-in"
           }`}
           >
@@ -1107,7 +1108,6 @@ function Suppliers() {
           .animate-toast-out { animation: toastOut 0.35s cubic-bezier(0.55, 0, 1, 0.4) forwards; }
           .animate-progress-bar { animation: progressBarShrink 5s linear forwards; }
         `}</style>
-      </main>
 
       <NotificationDetailModal
         notification={selectedNotification}
@@ -1116,7 +1116,7 @@ function Suppliers() {
         onMarkRead={markAsRead}
         onDelete={deleteNotification}
       />
-    </div>
+    </DashboardLayout>
   );
 }
 

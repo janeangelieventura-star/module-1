@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { MODULE_URLS } from "../config";
+import { useSidebar } from "../context/DashboardLayout";
 import {
   PackageSearch,
   Box,
@@ -8,6 +9,7 @@ import {
   Truck,
   ShoppingCart,
   BarChart3,
+  X,
 } from "lucide-react";
 
 const navItems = [
@@ -48,15 +50,29 @@ function ModuleLink({ href, icon: Icon, label }) {
 
 export default function Sidebar() {
   const location = useLocation();
+  const { sidebarOpen, closeSidebar } = useSidebar();
 
-  return (
-    <aside className="w-64 bg-[#FAF7F2] border-r border-[#E7E5E4] hidden lg:flex flex-col relative z-20 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-      <Link to="/inventory-hub" className="pt-6 pb-2 px-6 flex flex-col items-center gap-1 mb-1 group cursor-pointer">
+  const sidebarContent = (
+    <>
+      <Link
+        to="/inventory-hub"
+        onClick={closeSidebar}
+        className="pt-6 pb-2 px-6 flex flex-col items-center gap-1 mb-1 group cursor-pointer"
+      >
         <div className="w-12 h-12 bg-[#D96B5E] rounded-xl flex items-center justify-center shadow-sm group-hover:bg-[#C45A4D] transition-colors">
           <PackageSearch size={24} className="text-[#FFFFFF]" />
         </div>
         <span className="text-[#1A1A1A] font-black text-xl tracking-tight">OptiStock</span>
       </Link>
+
+      <div className="flex lg:hidden absolute top-4 right-4">
+        <button
+          onClick={closeSidebar}
+          className="p-2 rounded-xl hover:bg-[#EFE9DF] transition-all cursor-pointer"
+        >
+          <X size={20} />
+        </button>
+      </div>
 
       <nav className="flex-1 px-4 space-y-1">
         <p className="px-4 pt-1 pb-1 text-[10px] font-black uppercase tracking-[0.2em] text-[#A8A29E]">Menu</p>
@@ -68,6 +84,7 @@ export default function Sidebar() {
             <Link
               key={item.to}
               to={item.to}
+              onClick={closeSidebar}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all cursor-pointer ${
                 isActive
                   ? "bg-[#1A1A1A] text-[#FFFFFF] shadow-md"
@@ -94,6 +111,34 @@ export default function Sidebar() {
           System v3.5
         </p>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
+      {/* Desktop sidebar */}
+      <aside className="w-64 bg-[#FAF7F2] border-r border-[#E7E5E4] hidden lg:flex flex-col relative z-20 shrink-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile drawer */}
+      <div
+        className={`fixed top-0 left-0 h-full w-72 bg-[#FAF7F2] z-50 shadow-2xl lg:hidden transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex flex-col h-full overflow-y-auto">
+          {sidebarContent}
+        </div>
+      </div>
+    </>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
-import Sidebar from "../components/Sidebar";
+import DashboardLayout, { useSidebar } from "../context/DashboardLayout";
 import NotificationDetailModal from "../components/NotificationDetailModal";
 import { useWebSocket } from "../context/WebSocketProvider";
 import {
@@ -26,7 +26,8 @@ import {
   Info,
   LogOut,
   ArchiveRestore,
-  Archive
+  Archive,
+  Menu
 } from "lucide-react";
 
 function InventoryHub() {
@@ -437,21 +438,22 @@ function InventoryHub() {
   };
 
   return (
-    <div className="min-h-screen bg-[#EFE9DF] font-sans flex text-[#1A1A1A] overflow-hidden">
+    <DashboardLayout>
       
-      <div className="absolute inset-0 z-0 opacity-[0.03] bg-[radial-gradient(#1A1A1A_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
-
-      <Sidebar />
-
-      {/* MAIN CONTENT */}
-      <main className="flex-1 flex flex-col h-screen overflow-y-auto relative z-10">
-        
-        {/* HEADER */}
-        <header className="flex items-center justify-between p-6 lg:px-10 border-b border-[#E7E5E4] bg-[#FAF7F2]/80 backdrop-blur-md sticky top-0 z-40">
+      {/* HEADER */}
+      <header className="flex items-center justify-between p-4 lg:p-6 lg:px-10 border-b border-[#E7E5E4] bg-[#FAF7F2]/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => useSidebar().toggleSidebar()}
+            className="lg:hidden p-2 -ml-2 rounded-xl hover:bg-[#EFE9DF] transition-all cursor-pointer"
+          >
+            <Menu size={20} />
+          </button>
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#57534E]">Core Database</p>
-            <h1 className="text-2xl font-black tracking-tight text-[#1A1A1A]">Inventory Hub</h1>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#1A1A1A]">Inventory Hub</h1>
           </div>
+        </div>
 
           <div className="flex items-center gap-4">
             
@@ -825,7 +827,7 @@ function InventoryHub() {
             </div>
 
             <div className="overflow-auto h-[500px] w-full custom-scrollbar rounded-b-3xl relative z-10 bg-[#FFFFFF]">
-              <table className="w-full text-left border-collapse table-fixed">
+              <table className="w-full text-left border-collapse table-fixed responsive-table">
                 <colgroup>
                   <col className="w-[4%]" />
                   <col className="w-[13%]" />
@@ -838,32 +840,32 @@ function InventoryHub() {
                 <tbody className="divide-y divide-[#E7E5E4]">
                   {filteredProducts.length > 0 ? filteredProducts.map((product) => (
                     <tr key={product.id} className={`transition-colors ${selectedProducts.includes(product.id) ? "bg-[#FAD2CB]/10" : "hover:bg-[#FAF7F2]/50 bg-[#FFFFFF]"}`}>
-                      <td className="py-4 px-4 text-center">
+                      <td className="py-4 px-4 text-center" data-label="">
                         <button onClick={() => toggleSelectProduct(product.id)} className="text-[#A8A29E] hover:text-[#1A1A1A] transition-colors cursor-pointer">
                           {selectedProducts.includes(product.id) ? <CheckSquare size={18} className="text-[#1A1A1A]" /> : <Square size={18} />}
                         </button>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4" data-label="SKU">
                         <span className="font-mono text-xs font-bold text-[#57534E] bg-[#EFE9DF] px-2 py-1 rounded border border-[#E7E5E4]">
                           {product.sku}
                         </span>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4" data-label="Product">
                         <div className="flex flex-col">
                           <span className="font-bold text-[#1A1A1A]">{product.name}</span>
                           <span className="text-xs text-[#57534E]">{product.category_name}</span>
                         </div>
                       </td>
-                      <td className="py-4 px-4 text-sm text-[#57534E] font-medium">
+                      <td className="py-4 px-4 text-sm text-[#57534E] font-medium" data-label="Supplier">
                         {product.supplier_name || "-"}
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4" data-label="Pricing">
                         <div className="flex flex-col">
                           <span className="text-xs text-[#57534E]">Cost: ₱{product.cost_price}</span>
                           <span className="font-bold text-[#1A1A1A]">Sell: ₱{product.selling_price}</span>
                         </div>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4" data-label="Stock">
                         <div className="flex items-center gap-2">
                           <span className="text-lg font-black text-[#1A1A1A]">{product.stock}</span>
                           {product.stock <= product.reorder_level ? (
@@ -878,7 +880,7 @@ function InventoryHub() {
                         </div>
                         <span className="text-[10px] text-[#57534E]">Reorder at: {product.reorder_level}</span>
                       </td>
-                      <td className="py-4 px-6 text-right">
+                      <td className="py-4 px-6 text-right action-cell" data-label="">
                         <div className="flex justify-end gap-2">
                           <button 
                             onClick={() => openEditModal(product)}
@@ -911,7 +913,6 @@ function InventoryHub() {
             
           </div>
         </div>
-      </main>
 
       {/* --- ADD/EDIT MODAL --- */}
       {(isAddModalOpen || isEditModalOpen) && (
@@ -1296,7 +1297,7 @@ function InventoryHub() {
       {/* --- TOAST NOTIFICATION --- */}
       {toast.show && (
         <div 
-          className={`fixed bottom-6 right-6 z-[110] bg-[#1A1A1A] text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden min-w-[320px] origin-right ${
+          className={`fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-[110] bg-[#1A1A1A] text-white rounded-2xl shadow-2xl flex flex-col overflow-hidden min-w-[320px] origin-right ${
             toast.isClosing ? "animate-toast-out" : "animate-toast-in"
           }`}
         >
@@ -1364,7 +1365,7 @@ function InventoryHub() {
         onMarkRead={markAsRead}
         onDelete={deleteNotification}
       />
-    </div>
+    </DashboardLayout>
   );
 }
 
