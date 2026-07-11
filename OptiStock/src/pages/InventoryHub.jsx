@@ -90,6 +90,9 @@ function InventoryHub() {
   // Sign Out Confirmation
   const [signoutConfirm, setSignoutConfirm] = useState(false);
 
+  // Analytics Modal
+  const [analyticsModal, setAnalyticsModal] = useState({ type: null, open: false, closing: false });
+
   const navigate = useNavigate();
 
   const currentUser = useMemo(() => {
@@ -212,6 +215,17 @@ function InventoryHub() {
     setTimeout(() => {
       setPosModalOpen(false);
       setPosModalClosing(false);
+    }, 300);
+  };
+
+  const openAnalyticsModal = (type) => {
+    setAnalyticsModal({ type, open: true, closing: false });
+  };
+
+  const closeAnalyticsModal = () => {
+    setAnalyticsModal(prev => ({ ...prev, closing: true }));
+    setTimeout(() => {
+      setAnalyticsModal({ type: null, open: false, closing: false });
     }, 300);
   };
 
@@ -604,7 +618,10 @@ function InventoryHub() {
           
           {/* Analytics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-2">
-            <div className="bg-[#FFFFFF] p-6 rounded-3xl border border-[#E7E5E4] shadow-sm flex items-center justify-between">
+            <div
+              onClick={() => openAnalyticsModal('active')}
+              className="bg-[#FFFFFF] p-6 rounded-3xl border border-[#E7E5E4] shadow-sm flex items-center justify-between cursor-pointer transition-all hover:shadow-md active:scale-[0.98]"
+            >
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-[#57534E] mb-1">Total Active Items</p>
                 <h3 className="text-3xl font-black text-[#1A1A1A]">{totalItems}</h3>
@@ -614,7 +631,10 @@ function InventoryHub() {
               </div>
             </div>
 
-            <div className="bg-[#FFFFFF] p-6 rounded-3xl border border-[#FAD2CB] shadow-sm flex items-center justify-between relative overflow-hidden group">
+            <div
+              onClick={() => openAnalyticsModal('lowstock')}
+              className="bg-[#FFFFFF] p-6 rounded-3xl border border-[#FAD2CB] shadow-sm flex items-center justify-between relative overflow-hidden group cursor-pointer transition-all hover:shadow-md active:scale-[0.98]"
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-[#FAD2CB]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="relative z-10">
                 <p className="text-[10px] font-black uppercase tracking-widest text-[#D96B5E] mb-1">Low Stock Alerts</p>
@@ -625,7 +645,10 @@ function InventoryHub() {
               </div>
             </div>
 
-            <div className="bg-[#FFFFFF] p-6 rounded-3xl border border-[#C3ECE3] shadow-sm flex items-center justify-between relative overflow-hidden group">
+            <div
+              onClick={() => openAnalyticsModal('value')}
+              className="bg-[#FFFFFF] p-6 rounded-3xl border border-[#C3ECE3] shadow-sm flex items-center justify-between relative overflow-hidden group cursor-pointer transition-all hover:shadow-md active:scale-[0.98]"
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-[#C3ECE3]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="relative z-10">
                 <p className="text-[10px] font-black uppercase tracking-widest text-[#7BB8A7] mb-1">Total Stock Value</p>
@@ -1376,6 +1399,127 @@ function InventoryHub() {
         .animate-toast-out { animation: toastOut 0.35s cubic-bezier(0.55, 0, 1, 0.4) forwards; }
         .animate-progress-bar { animation: progressBarShrink 5s linear forwards; }
       `}</style>
+
+      {/* Analytics Modal */}
+      {analyticsModal.open && (
+        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1A1A1A]/40 backdrop-blur-sm ${analyticsModal.closing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}>
+          <div className={`bg-[#FFFFFF] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${analyticsModal.closing ? 'animate-modal-out' : 'animate-modal-in'}`}>
+            <div className="p-6 border-b border-[#E7E5E4] bg-[#FAF7F2] flex justify-between items-center shrink-0">
+              <h2 className="text-xl font-black text-[#1A1A1A] flex items-center gap-2">
+                {analyticsModal.type === 'active' && <PackageSearch size={22} className="text-[#1A1A1A]" />}
+                {analyticsModal.type === 'lowstock' && <AlertCircle size={22} className="text-[#D96B5E]" />}
+                {analyticsModal.type === 'value' && <TrendingUp size={22} className="text-[#7BB8A7]" />}
+                {analyticsModal.type === 'active' && 'Active Products'}
+                {analyticsModal.type === 'lowstock' && 'Low Stock Items'}
+                {analyticsModal.type === 'value' && 'Stock Value Breakdown'}
+              </h2>
+              <button onClick={closeAnalyticsModal} className="text-[#57534E] hover:text-[#1A1A1A] p-2 bg-transparent rounded-full hover:bg-[#EFE9DF] transition-all cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar overscroll-contain">
+              {analyticsModal.type === 'active' && (
+                <div className="space-y-1">
+                  {activeProducts.length === 0 ? (
+                    <p className="text-center py-12 text-[#57534E] font-medium">No active products.</p>
+                  ) : (
+                    activeProducts.map((p) => (
+                      <div key={p.id} className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-[#FAF7F2] transition-colors">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="font-mono text-xs font-bold text-[#57534E] bg-[#EFE9DF] px-2 py-1 rounded border border-[#E7E5E4] shrink-0">
+                            {p.sku}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-bold text-[#1A1A1A] truncate">{p.name}</p>
+                            <p className="text-xs text-[#57534E]">{p.category_name}</p>
+                          </div>
+                        </div>
+                        <span className="font-black text-[#1A1A1A] shrink-0 ml-4">{p.stock}</span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {analyticsModal.type === 'lowstock' && (
+                <div className="space-y-1">
+                  {activeProducts.filter(p => p.stock <= p.reorder_level).length === 0 ? (
+                    <p className="text-center py-12 text-[#57534E] font-medium">All products have sufficient stock.</p>
+                  ) : (
+                    activeProducts.filter(p => p.stock <= p.reorder_level).map((p) => (
+                      <div key={p.id} className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-[#FAF7F2] transition-colors">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <AlertCircle size={16} className="text-[#D96B5E] shrink-0" />
+                          <div className="min-w-0">
+                            <p className="font-bold text-[#1A1A1A] truncate">{p.name}</p>
+                            <p className="text-xs text-[#57534E]">{p.category_name}</p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0 ml-4">
+                          <span className="font-black text-[#D96B5E]">{p.stock}</span>
+                          <span className="text-xs text-[#57534E] ml-1">/ {p.reorder_level}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {analyticsModal.type === 'value' && (
+                <div className="space-y-4">
+                  {activeProducts.length === 0 ? (
+                    <p className="text-center py-12 text-[#57534E] font-medium">No products in inventory.</p>
+                  ) : (
+                    (() => {
+                      const byCategory = {};
+                      activeProducts.forEach(p => {
+                        const cat = p.category_name || 'Uncategorized';
+                        if (!byCategory[cat]) byCategory[cat] = { products: [], totalValue: 0 };
+                        const val = Number(p.cost_price) * p.stock;
+                        byCategory[cat].products.push(p);
+                        byCategory[cat].totalValue += val;
+                      });
+                      return Object.entries(byCategory).map(([cat, data]) => {
+                        const pct = totalInventoryValue > 0 ? (data.totalValue / totalInventoryValue * 100).toFixed(1) : 0;
+                        return (
+                          <div key={cat} className="bg-[#FAF7F2] rounded-2xl p-5 border border-[#E7E5E4]">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-bold text-[#1A1A1A]">{cat}</span>
+                              <div className="text-right">
+                                <span className="font-black text-[#1A1A1A]">₱{data.totalValue.toLocaleString()}</span>
+                                <span className="text-xs text-[#57534E] ml-2">({pct}%)</span>
+                              </div>
+                            </div>
+                            <div className="w-full h-2 bg-[#EFE9DF] rounded-full overflow-hidden">
+                              <div className="h-full bg-[#7BB8A7] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                            </div>
+                            <div className="mt-2 text-xs text-[#57534E]">
+                              {data.products.length} product{data.products.length !== 1 ? 's' : ''}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="p-4 border-t border-[#E7E5E4] bg-[#FAF7F2] flex justify-between items-center shrink-0">
+              <span className="text-xs font-bold text-[#57534E]">
+                {analyticsModal.type === 'active' && `Total: ${activeProducts.length} active item${activeProducts.length !== 1 ? 's' : ''}`}
+                {analyticsModal.type === 'lowstock' && `${activeProducts.filter(p => p.stock <= p.reorder_level).length} item${activeProducts.filter(p => p.stock <= p.reorder_level).length !== 1 ? 's' : ''} below reorder level`}
+                {analyticsModal.type === 'value' && `Total value: ₱${totalInventoryValue.toLocaleString()}`}
+              </span>
+              <button
+                onClick={closeAnalyticsModal}
+                className="px-6 py-2.5 bg-[#1A1A1A] text-[#FFFFFF] font-black uppercase text-xs tracking-widest rounded-xl shadow-md hover:bg-[#57534E] transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* POS Sales Details Modal */}
       {posModalOpen && (
