@@ -36,6 +36,8 @@ function InventoryHub() {
   const [categories, setCategories] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [posSales, setPosSales] = useState(null);
+  const [posModalOpen, setPosModalOpen] = useState(false);
+  const [posModalClosing, setPosModalClosing] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
 
   // Filtering & Search States
@@ -197,6 +199,20 @@ function InventoryHub() {
     } catch (err) {
       console.error('Failed to delete notification:', err);
     }
+  };
+
+  const openPosModal = () => {
+    if (!posSales || posSales.error) return;
+    setPosModalOpen(true);
+    setPosModalClosing(false);
+  };
+
+  const closePosModal = () => {
+    setPosModalClosing(true);
+    setTimeout(() => {
+      setPosModalOpen(false);
+      setPosModalClosing(false);
+    }, 300);
   };
 
   // Filter Logic
@@ -621,7 +637,10 @@ function InventoryHub() {
           </div>
 
           {/* POS Integration Card — data consumed from Module 2 (POS) */}
-          <div className={`bg-[#FFFFFF] p-6 rounded-3xl border shadow-sm flex items-center justify-between relative overflow-hidden group ${posSales ? 'border-[#E7E5E4]' : 'border-dashed border-[#D96B5E]/40'}`}>
+          <div
+            onClick={openPosModal}
+            className={`bg-[#FFFFFF] p-6 rounded-3xl border shadow-sm flex items-center justify-between relative overflow-hidden group cursor-pointer transition-all hover:shadow-md active:scale-[0.98] ${posSales && !posSales.error ? 'border-[#E7E5E4]' : 'border-dashed border-[#D96B5E]/40 opacity-70 pointer-events-none'}`}
+          >
             <div className="absolute inset-0 bg-gradient-to-r from-[#5e35b1]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <div className="relative z-10">
               <p className="text-[10px] font-black uppercase tracking-widest text-[#5e35b1] mb-1">
@@ -1357,6 +1376,89 @@ function InventoryHub() {
         .animate-toast-out { animation: toastOut 0.35s cubic-bezier(0.55, 0, 1, 0.4) forwards; }
         .animate-progress-bar { animation: progressBarShrink 5s linear forwards; }
       `}</style>
+
+      {/* POS Sales Details Modal */}
+      {posModalOpen && (
+        <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1A1A1A]/40 backdrop-blur-sm ${posModalClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}>
+          <div className={`bg-[#FFFFFF] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] ${posModalClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
+            <div className="p-6 border-b border-[#E7E5E4] bg-[#FAF7F2] flex justify-between items-center shrink-0">
+              <h2 className="text-xl font-black text-[#1A1A1A] flex items-center gap-2">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#5e35b1]">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+                Today's POS Sales
+              </h2>
+              <button onClick={closePosModal} className="text-[#57534E] hover:text-[#1A1A1A] p-2 bg-transparent rounded-full hover:bg-[#EFE9DF] transition-all cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar overscroll-contain space-y-4">
+              {(!posSales || !posSales.orders || posSales.orders.length === 0) ? (
+                <div className="text-center py-12 text-[#57534E] font-medium">
+                  <p className="text-5xl mb-4 opacity-30">🛒</p>
+                  <p>No POS sales recorded today.</p>
+                </div>
+              ) : (
+                posSales.orders.map((order) => (
+                  <div key={order.id} className="bg-[#FAF7F2] rounded-2xl p-5 border border-[#E7E5E4]">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <span className="font-mono text-xs font-bold text-[#57534E] bg-[#EFE9DF] px-2 py-1 rounded border border-[#E7E5E4]">
+                          {order.order_id}
+                        </span>
+                        <span className="text-xs text-[#57534E] ml-3">
+                          {new Date(order.sold_at).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <span className="text-sm font-black text-[#1A1A1A]">₱{parseFloat(order.total_amount).toLocaleString()}</span>
+                    </div>
+                    <div className="text-xs text-[#57534E] mb-3 flex items-center gap-3">
+                      <span className="font-bold">Cashier: {order.cashier_name || 'N/A'}</span>
+                      <span className="w-1 h-1 rounded-full bg-[#A8A29E]" />
+                      <span>{order.item_count} item{order.item_count !== 1 ? 's' : ''}</span>
+                      {order.payment_method && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-[#A8A29E]" />
+                          <span>{order.payment_method}</span>
+                        </>
+                      )}
+                    </div>
+                    {order.items && order.items.length > 0 && (
+                      <div className="border-t border-[#E7E5E4] pt-3 mt-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#A8A29E] mb-2">Items</p>
+                        <div className="space-y-1.5">
+                          {order.items.map((item, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-[#A8A29E] font-mono text-xs">x{item.qty}</span>
+                                <span className="font-medium text-[#1A1A1A] truncate">{item.product_name}</span>
+                              </div>
+                              <span className="font-bold text-[#57534E] shrink-0 ml-4">₱{(item.subtotal || item.qty * item.price).toLocaleString()}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="p-4 border-t border-[#E7E5E4] bg-[#FAF7F2] flex justify-between items-center shrink-0">
+              {posSales && posSales.orders && posSales.orders.length > 0 && (
+                <span className="text-xs font-bold text-[#57534E]">
+                  Total today: <span className="text-[#1A1A1A] font-black">₱{parseFloat(posSales.total_sales).toLocaleString()}</span>
+                </span>
+              )}
+              <button
+                onClick={closePosModal}
+                className="px-6 py-2.5 bg-[#1A1A1A] text-[#FFFFFF] font-black uppercase text-xs tracking-widest rounded-xl shadow-md hover:bg-[#57534E] transition-colors cursor-pointer ml-auto"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <NotificationDetailModal
         notification={selectedNotification}
