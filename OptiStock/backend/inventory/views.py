@@ -98,25 +98,23 @@ def _fetch_pos_api(endpoint):
 @permission_classes([AllowAny])
 def integration_pos_sales_view(request):
     """
-    Consumes M2 (POS) API: GET /api/sales/today/
-    Returns today's POS sales data to the Inventory frontend.
-    This endpoint proves Module 1 consumes data from Module 2.
+    Returns today's POS sales data consumed from the POS module.
+    Data is received via POS push (POST /api/pos-sales/) and stored
+    in the local pos_sales table on Aiven.
     """
-    data = _fetch_pos_api('/sales/today/')
-    if data is None:
-        return Response({
-            'error': 'POS module unavailable',
-            'order_count': 0,
-            'total_sales': '0.00',
-            'total_items': 0,
-            'source': settings.POS_API_URL,
-        }, status=status.HTTP_200_OK)
+    from django.utils.timezone import now
 
+    today = now().date()
+    stats = PosSale.objects.filter(sold_at__date=today).aggregate(
+        order_count=Count('id'),
+        total_sales=Sum('total_amount'),
+        total_items=Sum('item_count'),
+    )
     return Response({
-        'order_count': data.get('order_count', 0),
-        'total_sales': str(data.get('total_sales', '0.00')),
-        'total_items': data.get('total_items', 0),
-        'source': settings.POS_API_URL,
+        'order_count': stats['order_count'] or 0,
+        'total_sales': str(stats['total_sales'] or '0.00'),
+        'total_items': stats['total_items'] or 0,
+        'source': 'pos_sales_table',
     })
 
 
