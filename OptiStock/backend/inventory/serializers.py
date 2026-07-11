@@ -166,3 +166,8 @@ class PosSaleSerializer(serializers.ModelSerializer):
         model = PosSale
         fields = '__all__'
         read_only_fields = ['id', 'created_at']
+
+    def validate_items(self, value):
+        if value is not None and not isinstance(value, list):
+            raise serializers.ValidationError('items must be a list')
+        return value

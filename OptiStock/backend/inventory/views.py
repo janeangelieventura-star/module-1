@@ -105,7 +105,8 @@ def integration_pos_sales_view(request):
     from django.utils.timezone import now
 
     today = now().date()
-    stats = PosSale.objects.filter(sold_at__date=today).aggregate(
+    qs = PosSale.objects.filter(sold_at__date=today).order_by('-sold_at')
+    stats = qs.aggregate(
         order_count=Count('id'),
         total_sales=Sum('total_amount'),
         total_items=Sum('item_count'),
@@ -114,6 +115,7 @@ def integration_pos_sales_view(request):
         'order_count': stats['order_count'] or 0,
         'total_sales': str(stats['total_sales'] or '0.00'),
         'total_items': stats['total_items'] or 0,
+        'orders': PosSaleSerializer(qs, many=True).data,
         'source': 'pos_sales_table',
     })
 

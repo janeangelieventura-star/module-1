@@ -335,6 +335,7 @@ class PosSale(models.Model):
     item_count = models.IntegerField(default=0)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2)
     payment_method = models.CharField(max_length=50, blank=True, null=True)
+    items = models.JSONField(blank=True, null=True)
     sold_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 

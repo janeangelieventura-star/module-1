@@ -23,11 +23,21 @@ class InventoryConfig(AppConfig):
                         item_count INT DEFAULT 0,
                         total_amount DECIMAL(12, 2) NOT NULL,
                         payment_method VARCHAR(50),
+                        items JSON,
                         sold_at DATETIME NOT NULL,
                         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         INDEX idx_pos_sales_sold_at (sold_at),
                         INDEX idx_pos_sales_id (id)
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                 """)
+                # Add items column if not exists (MySQL 8.x compatible)
+                cursor.execute("""
+                    SELECT COUNT(*) FROM information_schema.COLUMNS
+                    WHERE TABLE_SCHEMA = DATABASE()
+                    AND TABLE_NAME = 'pos_sales'
+                    AND COLUMN_NAME = 'items'
+                """)
+                if not cursor.fetchone()[0]:
+                    cursor.execute("ALTER TABLE pos_sales ADD COLUMN items JSON AFTER payment_method")
         except Exception as e:
             print(f'[Startup] pos_sales table check skipped: {e}')
