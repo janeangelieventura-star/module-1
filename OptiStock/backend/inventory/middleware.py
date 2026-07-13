@@ -39,7 +39,7 @@ class AccountLockMiddleware:
             remaining = int((attempt.locked_until - now).total_seconds())
             return JsonResponse({
                 'error': 'Account locked due to too many failed login attempts.',
-                'account_locked': True,
+                'locked': True,
                 'remaining_seconds': remaining,
                 'locked_until': attempt.locked_until.isoformat(),
             }, status=status.HTTP_429_TOO_MANY_REQUESTS)
