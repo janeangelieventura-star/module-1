@@ -6,7 +6,7 @@ from urllib.error import URLError
 
 from django.conf import settings
 from django.contrib.auth.hashers import check_password
-from django.db import transaction
+from django.db import connection, transaction
 from django.db.models import F
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
@@ -321,7 +321,8 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Archived product not found.'}, status=404)
         with transaction.atomic():
             StockLedger.objects.filter(product=product).delete()
-            product.delete()
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM products WHERE id = %s", [pk])
         return Response({'status': 'permanently deleted'})
 
     @action(detail=False, methods=['post'], url_path='deduct-stock')

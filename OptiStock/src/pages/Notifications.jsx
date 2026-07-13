@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { api } from "../services/api";
 import { useWebSocket } from "../context/WebSocketProvider";
+import { showSignoutConfirm } from "../utils/swalHelper";
 
 function Notifications() {
   const [notifications, setNotifications] = useState([]);
@@ -57,7 +58,6 @@ function Notifications() {
   const [archivedProducts, setArchivedProducts] = useState([]);
   const [archivedLoading, setArchivedLoading] = useState(false);
   const [permDeleteTarget, setPermDeleteTarget] = useState(null);
-  const [signoutConfirm, setSignoutConfirm] = useState(false);
   const navigate = useNavigate();
   const currentUser = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; }
@@ -411,7 +411,7 @@ function Notifications() {
                   </button>
 
                   <button
-                    onClick={() => { setIsProfileDropdownOpen(false); setSignoutConfirm(true); }}
+                    onClick={() => { setIsProfileDropdownOpen(false); showSignoutConfirm(api, navigate); }}
                     className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-[#D96B5E] hover:bg-[#FAD2CB]/20 transition-all text-left cursor-pointer"
                   >
                     <LogOut size={18} />
@@ -808,46 +808,6 @@ function Notifications() {
                   className="w-full flex justify-center items-center gap-1.5 px-4 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-md transition-all hover:scale-[1.02] active:scale-95 bg-[#D96B5E] hover:bg-[#C45A4D] text-[#FFFFFF] cursor-pointer"
                 >
                   <Trash2 size={16} /> Delete Forever
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* --- SIGNOUT CONFIRMATION --- */}
-      {signoutConfirm && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-[#1A1A1A]/40 backdrop-blur-sm animate-backdrop-in">
-          <div className="bg-[#FFFFFF] rounded-[2rem] w-full max-w-sm p-8 pt-16 shadow-2xl flex flex-col items-center text-center relative overflow-hidden animate-modal-in">
-            <div className="absolute top-0 left-0 w-full h-24 z-0 bg-[#1A1A1A]" />
-            <div className="absolute -top-12 -right-8 w-36 h-36 rounded-full bg-[#FFFFFF]/10 z-10 pointer-events-none" />
-
-            <div className="relative z-20 flex flex-col items-center mt-2 w-full">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mb-6 border-[6px] shadow-sm bg-[#FFFFFF] border-[#E7E5E4] text-[#1A1A1A]">
-                <LogOut size={44} strokeWidth={2.5} />
-              </div>
-
-              <h2 className="text-2xl sm:text-3xl font-black text-[#1A1A1A] uppercase tracking-tight mb-3 leading-none">
-                Sign Out?
-              </h2>
-              <p className="text-sm font-medium text-[#57534E] mb-8 leading-relaxed">
-                Are you sure you want to sign out? You will need to log in again to access the dashboard.
-              </p>
-
-              <div className="w-full flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setSignoutConfirm(false)}
-                  className="w-full px-4 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-sm transition-all hover:bg-[#EFE9DF] bg-[#FAF7F2] border border-[#E7E5E4] text-[#1A1A1A] cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                    onClick={async () => { try { await api.logout(); } catch {} localStorage.removeItem('user'); navigate('/'); }}
-                  className="w-full flex justify-center items-center gap-1.5 px-4 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-md transition-all hover:scale-[1.02] active:scale-95 bg-[#1A1A1A] hover:bg-[#57534E] text-[#FFFFFF] cursor-pointer"
-                >
-                  <LogOut size={16} /> Sign Out
                 </button>
               </div>
             </div>
