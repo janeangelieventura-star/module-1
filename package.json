@@ -1,0 +1,17 @@
+{
+  "name": "optistock-all-modules",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n \"FE,BE,POS,DASH\" -c \"blue,yellow,green,magenta\" \"npm run dev:fe\" \"npm run dev:be\" \"npm run dev:posbe\" \"npm run dev:dashbe\"",
+    "dev:fe": "concurrently -n \"M1,M2,M3\" -c \"blue,green,orange\" \"npm run dev:m1\" \"npm run dev:m2\" \"npm run dev:m3\"",
+    "dev:m1": "cd OptiStock && npm run dev",
+    "dev:m2": "cd /Users/janeventura/Downloads/POS-Module && npm run dev",
+    "dev:m3": "cd /Users/janeventura/Downloads/Dashboard-Module && npm run dev",
+    "dev:be": "cd OptiStock/backend && python3 -m uvicorn config.asgi:application --reload --host 127.0.0.1 --port 8000",
+    "dev:posbe": "cd /Users/janeventura/Downloads/POS-Module && npm run dev:server",
+    "dev:dashbe": "cd /Users/janeventura/Downloads/Dashboard-Module && npm run dev:server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

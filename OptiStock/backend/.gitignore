@@ -1,0 +1,19 @@
+# Django
+*.pyc
+__pycache__/
+*.pyo
+*.sqlite3
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Migrations (we use managed=False, no Django migrations needed)
+*/migrations/

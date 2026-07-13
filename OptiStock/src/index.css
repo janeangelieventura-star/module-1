@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background-color: rgba(191, 255, 0, 0.35);
+}
+
+@keyframes toastIn {
+  0% { opacity: 0; transform: translateX(80px) scale(0.6); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes toastOut {
+  0% { opacity: 1; transform: translateX(0) scale(1); }
+  100% { opacity: 0; transform: translateX(60px) scale(0.3); }
+}
+@keyframes progressBarShrink {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+.animate-toast-in { animation: toastIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-toast-out { animation: toastOut 0.35s cubic-bezier(0.55, 0, 1, 0.4) forwards; }
+.animate-progress-bar { animation: progressBarShrink 5s linear forwards; }
+
+@media (max-width: 767px) {
+  .responsive-table { display: block; }
+  .responsive-table thead { display: none; }
+  .responsive-table tbody { display: block; }
+  .responsive-table tbody tr {
+    display: block;
+    padding: 16px;
+    margin: 8px 0;
+    background: #FFFFFF;
+    border: 1px solid #E7E5E4;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .responsive-table tbody tr td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border: none;
+    font-size: 13px;
+  }
+  .responsive-table tbody tr td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #A8A29E;
+    margin-right: 12px;
+    white-space: nowrap;
+  }
+  .responsive-table tbody tr td:first-child {
+    padding-top: 0;
+  }
+  .responsive-table tbody tr td:last-child {
+    padding-bottom: 0;
+  }
+  .responsive-table .action-cell {
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid #E7E5E4;
+    margin-top: 8px;
+  }
+  .responsive-table .action-cell::before { display: none; }
+}
+
+@media (max-width: 767px) {
+  .responsive-table-stock { display: block; }
+  .responsive-table-stock thead { display: none; }
+  .responsive-table-stock tbody { display: block; }
+  .responsive-table-stock tbody tr {
+    display: block;
+    padding: 16px;
+    margin: 8px 0;
+    background: #FFFFFF;
+    border: 1px solid #E7E5E4;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .responsive-table-stock tbody tr td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    border: none;
+    font-size: 13px;
+  }
+  .responsive-table-stock tbody tr td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #A8A29E;
+    margin-right: 12px;
+    white-space: nowrap;
+  }
+  .responsive-table-stock tbody tr td:first-child { padding-top: 0; }
+  .responsive-table-stock tbody tr td:last-child { padding-bottom: 0; }
+}
+
+@media (max-width: 767px) {
+  .responsive-table-simple { display: block; }
+  .responsive-table-simple thead { display: none; }
+  .responsive-table-simple tbody { display: block; }
+  .responsive-table-simple tbody tr {
+    display: block;
+    padding: 14px 16px;
+    margin: 8px 0;
+    background: #FFFFFF;
+    border: 1px solid #E7E5E4;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .responsive-table-simple tbody tr td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    border: none;
+    font-size: 13px;
+  }
+  .responsive-table-simple tbody tr td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: #A8A29E;
+    margin-right: 12px;
+    white-space: nowrap;
+  }
+  .responsive-table-simple tbody tr td:first-child { padding-top: 0; }
+  .responsive-table-simple tbody tr td:last-child { padding-bottom: 0; }
+}
