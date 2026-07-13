@@ -41,6 +41,12 @@ async function request(endpoint, options = {}) {
     const body = await res.json().catch(() => ({}));
     if (body.locked) {
       localStorage.removeItem('user');
+      if (window.location.pathname === '/') {
+        const err = new Error(body.error || 'Account locked');
+        err.status = res.status;
+        Object.assign(err, body);
+        throw err;
+      }
       const { showLockoutAlert } = await import('../utils/swalHelper');
       showLockoutAlert(body.remaining_seconds || 0);
       await new Promise(r => setTimeout(r, 2000));

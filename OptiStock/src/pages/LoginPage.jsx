@@ -28,7 +28,12 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const [stats, setStats] = useState({ total_active_items: 0, low_stock_count: 0, total_inventory_value: 0 });
-  useEffect(() => { api.getDashboardStats().then(setStats).catch(() => {}); }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get('locked')) {
+      api.getDashboardStats().then(setStats).catch(() => {});
+    }
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
