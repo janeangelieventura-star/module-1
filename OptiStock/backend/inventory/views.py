@@ -15,9 +15,11 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.db.models import Sum, F, Count, Q
+from django.utils import timezone
+from datetime import timedelta
 
 from .models import (
-    Product, Category, Supplier, User, StockLedger, Notification, PosSale,
+    Product, Category, Supplier, User, StockLedger, Notification, PosSale, LoginAttempt,
 )
 from .serializers import (
     ProductSerializer, ProductDropdownSerializer,
@@ -48,15 +50,44 @@ def login_view(request):
 
     email = request.data.get('email', '').strip().lower()
     password = request.data.get('password', '')
+
+    now = timezone.now()
+    attempt, _ = LoginAttempt.objects.get_or_create(email=email, defaults={'attempts': 0})
+
+    if attempt.locked_until and attempt.locked_until > now:
+        remaining = int((attempt.locked_until - now).total_seconds())
+        return Response({
+            'error': f'Account locked. Try again in {remaining} seconds.',
+            'locked_until': attempt.locked_until.isoformat(),
+            'remaining_seconds': remaining,
+        }, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
     try:
         user = User.objects.get(email__iexact=email)
         if not check_password(password, user.password_hash):
-            return Response({'error': 'Invalid email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+            raise User.DoesNotExist
+        attempt.attempts = 0
+        attempt.locked_until = None
+        attempt.last_attempt = now
+        attempt.save()
         request.session['user_id'] = user.id
         request.session.save()
         return Response(UserSerializer(user).data)
     except User.DoesNotExist:
-        return Response({'error': 'Invalid email or password.'}, status=status.HTTP_401_UNAUTHORIZED)
+        attempt.attempts += 1
+        attempt.last_attempt = now
+        if attempt.attempts >= 5:
+            attempt.locked_until = now + timedelta(minutes=30)
+        elif attempt.attempts >= 4:
+            attempt.locked_until = now + timedelta(minutes=15)
+        elif attempt.attempts >= 3:
+            attempt.locked_until = now + timedelta(minutes=5)
+        attempt.save()
+        remaining_attempts = max(0, 3 - attempt.attempts)
+        return Response({
+            'error': 'Invalid email or password.',
+            'remaining_attempts': remaining_attempts,
+        }, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(['POST'])

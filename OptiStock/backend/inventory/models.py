@@ -356,3 +356,17 @@ class PosSale(models.Model):
 
     def __str__(self):
         return f'{self.order_id} - {self.total_amount}'
+
+
+class LoginAttempt(models.Model):
+    email = models.EmailField(max_length=150, primary_key=True)
+    attempts = models.IntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
+    last_attempt = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'login_attempts'
+        managed = False
+
+    def __str__(self):
+        return f'{self.email} - {self.attempts} attempts'

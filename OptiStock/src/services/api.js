@@ -39,7 +39,10 @@ async function request(endpoint, options = {}) {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `Request failed (${res.status})`);
+    const err = new Error(body.error || `Request failed (${res.status})`);
+    err.status = res.status;
+    Object.assign(err, body);
+    throw err;
   }
   if (res.status === 204) return null;
   return res.json();

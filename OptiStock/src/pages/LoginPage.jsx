@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../services/api";
+import { showLockoutAlert } from "../utils/swalHelper";
 import {
   ArrowRight,
   Mail,
@@ -89,8 +90,16 @@ function LoginPage() {
       showToast("Authentication successful! Redirecting...", "success");
       setTimeout(() => navigate('/inventory-hub'), 1000);
     } catch (err) {
-      showToast(err.message, "error");
       setIsLoading(false);
+      if (err.status === 429) {
+        showLockoutAlert(err.remaining_seconds || 0);
+        return;
+      }
+      if (err.remaining_attempts !== undefined && err.remaining_attempts <= 1) {
+        showToast(`${err.message} ${err.remaining_attempts} attempt${err.remaining_attempts !== 1 ? 's' : ''} remaining.`, "error");
+        return;
+      }
+      showToast(err.message, "error");
     }
   };
 
