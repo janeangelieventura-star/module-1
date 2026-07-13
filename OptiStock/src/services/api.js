@@ -39,6 +39,11 @@ async function request(endpoint, options = {}) {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
+    if (body.account_locked) {
+      localStorage.removeItem('user');
+      window.location.href = '/?locked=' + (body.remaining_seconds || 0);
+      await new Promise(() => {});
+    }
     const err = new Error(body.error || `Request failed (${res.status})`);
     err.status = res.status;
     Object.assign(err, body);

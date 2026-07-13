@@ -30,6 +30,18 @@ function LoginPage() {
   const [stats, setStats] = useState({ total_active_items: 0, low_stock_count: 0, total_inventory_value: 0 });
   useEffect(() => { api.getDashboardStats().then(setStats).catch(() => {}); }, []);
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const lockedSeconds = params.get('locked');
+    if (lockedSeconds) {
+      const seconds = parseInt(lockedSeconds, 10);
+      if (seconds > 0) {
+        showLockoutAlert(seconds);
+      }
+      window.history.replaceState({}, '', '/');
+    }
+  }, []);
+
   // States para sa Protocol Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
