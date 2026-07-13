@@ -176,7 +176,7 @@ def dashboard_stats_view(request):
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
-    queryset = Category.objects.all()
+    queryset = Category.objects.filter(status='active')
     serializer_class = CategorySerializer
 
     def perform_create(self, serializer):
@@ -184,20 +184,54 @@ class CategoryViewSet(viewsets.ModelViewSet):
         next_num = int(last_id.id[1:]) + 1 if last_id else 1
         serializer.save(id=f'C{next_num:03d}')
 
+    def perform_destroy(self, instance):
+        instance.status = 'archived'
+        instance.save(update_fields=['status'])
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.product_count > 0:
             return Response(
-                {'error': f'Cannot delete "{instance.name}". There are {instance.product_count} products assigned to this category.'},
+                {'error': f'Cannot archive "{instance.name}". There are {instance.product_count} products assigned to this category.'},
                 status=status.HTTP_409_CONFLICT,
             )
-        with connection.cursor() as cursor:
-            cursor.execute("DELETE FROM categories WHERE id = %s", [instance.id])
+        self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'])
+    def archived(self, request):
+        qs = Category.objects.filter(status='archived')
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['patch'])
+    def unarchive(self, request, pk=None):
+        try:
+            cat = Category.objects.get(id=pk, status='archived')
+        except Category.DoesNotExist:
+            return Response({'error': 'Archived category not found.'}, status=404)
+        cat.status = 'active'
+        cat.save(update_fields=['status'])
+        serializer = self.get_serializer(cat)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['delete'])
+    def permanent_delete(self, request, pk=None):
+        try:
+            cat = Category.objects.get(id=pk, status='archived')
+        except Category.DoesNotExist:
+            return Response({'error': 'Archived category not found.'}, status=404)
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM categories WHERE id = %s", [pk])
+        return Response({'status': 'permanently deleted'})
 
 
 class SupplierViewSet(viewsets.ModelViewSet):
-    queryset = Supplier.objects.all()
+    queryset = Supplier.objects.filter(status='active')
     serializer_class = SupplierSerializer
 
     def perform_create(self, serializer):
@@ -205,16 +239,50 @@ class SupplierViewSet(viewsets.ModelViewSet):
         next_num = int(last_id.id[1:]) + 1 if last_id else 1
         serializer.save(id=f'S{next_num:03d}')
 
+    def perform_destroy(self, instance):
+        instance.status = 'archived'
+        instance.save(update_fields=['status'])
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         if instance.products_supplied > 0:
             return Response(
-                {'error': f'Cannot delete "{instance.company_name}". There are {instance.products_supplied} products linked to this supplier.'},
+                {'error': f'Cannot archive "{instance.company_name}". There are {instance.products_supplied} products linked to this supplier.'},
                 status=status.HTTP_409_CONFLICT,
             )
-        with connection.cursor() as cursor:
-            cursor.execute("DELETE FROM suppliers WHERE id = %s", [instance.id])
+        self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'])
+    def archived(self, request):
+        qs = Supplier.objects.filter(status='archived')
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['patch'])
+    def unarchive(self, request, pk=None):
+        try:
+            sup = Supplier.objects.get(id=pk, status='archived')
+        except Supplier.DoesNotExist:
+            return Response({'error': 'Archived supplier not found.'}, status=404)
+        sup.status = 'active'
+        sup.save(update_fields=['status'])
+        serializer = self.get_serializer(sup)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['delete'])
+    def permanent_delete(self, request, pk=None):
+        try:
+            sup = Supplier.objects.get(id=pk, status='archived')
+        except Supplier.DoesNotExist:
+            return Response({'error': 'Archived supplier not found.'}, status=404)
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM suppliers WHERE id = %s", [pk])
+        return Response({'status': 'permanently deleted'})
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):

@@ -12,7 +12,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'status']
 
     def validate_name(self, value):
         if not re.match(r'^[a-zA-Z0-9 ]+$', value):
@@ -31,7 +31,7 @@ class SupplierSerializer(serializers.ModelSerializer):
     class Meta:
         model = Supplier
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'status']
 
     def validate_company_name(self, value):
         if not re.match(r'^[a-zA-Z0-9 ]+$', value):

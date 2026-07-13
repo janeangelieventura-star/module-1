@@ -418,13 +418,14 @@ function StockAdjustments() {
                   <p className="text-xs font-bold text-[#A8A29E] uppercase tracking-wider mt-0.5">{currentUser.role || ''}</p>
                 </div>
 
-                <button
-                  onClick={() => { setIsProfileDropdownOpen(false); openArchivedModal(); }}
+                <Link
+                  to="/archives"
+                  onClick={() => setIsProfileDropdownOpen(false)}
                   className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-[#1A1A1A] hover:bg-[#FAF7F2] transition-all border-b border-[#E7E5E4] text-left cursor-pointer"
                 >
                   <ArchiveRestore size={18} className="text-[#57534E]" />
-                  Archived Products
-                </button>
+                  View Archives
+                </Link>
 
                 <button
                   onClick={() => { setIsProfileDropdownOpen(false); showSignoutConfirm(api, navigate); }}

@@ -10,6 +10,7 @@ import StockAdjustments from "./pages/StockAdjustments";
 import Categories from "./pages/Categories";
 import Suppliers from "./pages/Suppliers";
 import Notifications from "./pages/Notifications";
+import Archives from "./pages/Archives";
 
 function ProtectedRoute({ children }) {
   const [checking, setChecking] = useState(true);
@@ -57,6 +58,7 @@ function App() {
         <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
         <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
         <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+        <Route path="/archives" element={<ProtectedRoute><Archives /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </WebSocketProvider>

@@ -72,9 +72,14 @@ class VLowStockAlert(DashboardViewModel):
 
 
 class Category(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('archived', 'Archived'),
+    ]
     id = models.CharField(max_length=20, primary_key=True)
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
     product_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -90,12 +95,17 @@ class Category(models.Model):
 
 
 class Supplier(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('archived', 'Archived'),
+    ]
     id = models.CharField(max_length=20, primary_key=True)
     company_name = models.CharField(max_length=150, unique=True)
     contact_person = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(max_length=150, blank=True, null=True)
     phone = models.CharField(max_length=30, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
     products_supplied = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

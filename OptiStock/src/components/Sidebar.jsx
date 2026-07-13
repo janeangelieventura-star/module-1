@@ -9,6 +9,7 @@ import {
   Truck,
   ShoppingCart,
   BarChart3,
+  ArchiveRestore,
   X,
 } from "lucide-react";
 
@@ -17,6 +18,7 @@ const navItems = [
   { to: "/stock-adjustments", label: "Stock Adjustments", icon: ClipboardList },
   { to: "/categories", label: "Categories", icon: Tags },
   { to: "/suppliers", label: "Suppliers", icon: Truck },
+  { to: "/archives", label: "Archives", icon: ArchiveRestore },
 ];
 
 function ModuleLink({ href, icon: Icon, label }) {

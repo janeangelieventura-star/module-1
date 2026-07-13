@@ -7,6 +7,7 @@ import {
   Truck,
   Bell,
   Menu,
+  ArchiveRestore,
 } from "lucide-react";
 
 const navItems = [
@@ -14,6 +15,7 @@ const navItems = [
   { to: "/stock-adjustments", label: "Stock", icon: ClipboardList },
   { to: "/categories", label: "Categories", icon: Tags },
   { to: "/suppliers", label: "Suppliers", icon: Truck },
+  { to: "/archives", label: "Archives", icon: ArchiveRestore },
 ];
 
 export default function MobileBottomNav() {

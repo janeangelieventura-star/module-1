@@ -69,11 +69,6 @@ function Suppliers() {
   });
 
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isArchivedModalOpen, setIsArchivedModalOpen] = useState(false);
-  const [archivedModalClosing, setArchivedModalClosing] = useState(false);
-  const [archivedProducts, setArchivedProducts] = useState([]);
-  const [archivedLoading, setArchivedLoading] = useState(false);
-  const [permDeleteTarget, setPermDeleteTarget] = useState(null);
   const navigate = useNavigate();
   const currentUser = useMemo(() => {
     try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch { return {}; }
@@ -241,7 +236,7 @@ function Suppliers() {
 
   const openDeleteModal = (supplier) => {
     if (supplier.products_supplied > 0) {
-      showToast(`Cannot delete "${supplier.company_name}". There are ${supplier.products_supplied} products currently linked to this supplier.`, "error");
+      showToast(`Cannot archive "${supplier.company_name}". There are ${supplier.products_supplied} products currently linked to this supplier.`, "error");
       return;
     }
     setDeleteModalConfig({ isOpen: true, supplier });
@@ -316,58 +311,18 @@ function Suppliers() {
     }
   };
 
-  // Confirm Delete Action
+  // Confirm Archive Action
   const confirmDelete = async () => {
     if (!deleteModalConfig.supplier) return;
-    const deletedName = deleteModalConfig.supplier.company_name;
+    const archiveName = deleteModalConfig.supplier.company_name;
     try {
-      await api.deleteSupplier(deleteModalConfig.supplier.id);
+      await api.archiveSupplier(deleteModalConfig.supplier.id);
       setSuppliers(suppliers.filter(s => s.id !== deleteModalConfig.supplier.id));
       closeAllModals();
-      showToast(`Supplier "${deletedName}" has been permanently removed.`, "success");
+      showToast(`Supplier "${archiveName}" has been archived.`, "success");
     } catch (err) {
       showToast(err.message, "error");
       closeAllModals();
-    }
-  };
-
-  const openArchivedModal = async () => {
-    setIsArchivedModalOpen(true);
-    setArchivedLoading(true);
-    try {
-      const res = await api.getArchivedProducts();
-      setArchivedProducts(res.results || res);
-    } catch (err) {
-      // fail silently - toast not always available
-    }
-    setArchivedLoading(false);
-  };
-
-  const closeArchivedModal = () => {
-    setArchivedModalClosing(true);
-    setTimeout(() => {
-      setIsArchivedModalOpen(false);
-      setArchivedModalClosing(false);
-    }, 300);
-  };
-
-  const handleUnarchive = async (id) => {
-    try {
-      await api.unarchiveProduct(id);
-      setArchivedProducts(archivedProducts.filter(p => p.id !== id));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handlePermanentDelete = async () => {
-    if (!permDeleteTarget) return;
-    try {
-      await api.permanentDeleteProduct(permDeleteTarget);
-      setArchivedProducts(archivedProducts.filter(p => p.id !== permDeleteTarget));
-      setPermDeleteTarget(null);
-    } catch (err) {
-      console.error(err);
     }
   };
 
@@ -498,13 +453,14 @@ function Suppliers() {
                   <p className="text-xs font-bold text-[#A8A29E] uppercase tracking-wider mt-0.5">{currentUser.role || ''}</p>
                 </div>
 
-                <button
-                  onClick={() => { setIsProfileDropdownOpen(false); openArchivedModal(); }}
+                <Link
+                  to="/archives"
+                  onClick={() => setIsProfileDropdownOpen(false)}
                   className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-[#1A1A1A] hover:bg-[#FAF7F2] transition-all border-b border-[#E7E5E4] text-left cursor-pointer"
                 >
                   <ArchiveRestore size={18} className="text-[#57534E]" />
-                  Archived Products
-                </button>
+                  View Archives
+                </Link>
 
                 <button
                   onClick={() => { setIsProfileDropdownOpen(false); showSignoutConfirm(api, navigate); }}
@@ -684,7 +640,7 @@ function Suppliers() {
                                     ? "text-[#A8A29E] cursor-not-allowed opacity-50" 
                                     : "text-[#D96B5E] hover:bg-[#FAD2CB]/50 hover:border-[#FAD2CB]"
                                 }`}
-                                title={supplier.products_supplied > 0 ? "Cannot delete supplier in use" : "Delete Supplier"}
+                                title={supplier.products_supplied > 0 ? "Cannot archive supplier in use" : "Archive Supplier"}
                               >
                                 <Archive size={16} />
                               </button>
@@ -818,27 +774,27 @@ function Suppliers() {
           </div>
         )}
 
-        {/* --- NEW CUSTOM DELETE CONFIRMATION MODAL --- */}
+        {/* --- ARCHIVE CONFIRMATION MODAL --- */}
         {deleteModalConfig.isOpen && (
           <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1A1A1A]/40 backdrop-blur-sm ${isClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}>
             <div className={`bg-[#FFFFFF] rounded-[2rem] w-full max-w-sm p-8 pt-16 shadow-2xl flex flex-col items-center text-center relative overflow-hidden ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
               
               {/* Background Header */}
-              <div className="absolute top-0 left-0 w-full h-24 z-0 bg-[#D96B5E]" />
+              <div className="absolute top-0 left-0 w-full h-24 z-0 bg-[#7BB8A7]" />
               <div className="absolute -top-12 -right-8 w-36 h-36 rounded-full bg-[#FFFFFF]/20 z-10 pointer-events-none" />
 
               <div className="relative z-20 flex flex-col items-center mt-2 w-full">
                 {/* Icon */}
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mb-6 border-[6px] shadow-sm bg-[#FFFFFF] border-[#FAD2CB] text-[#D96B5E]">
-                  <AlertCircle size={44} strokeWidth={2.5} />
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mb-6 border-[6px] shadow-sm bg-[#FFFFFF] border-[#C3ECE3] text-[#7BB8A7]">
+                  <ArchiveRestore size={44} strokeWidth={2.5} />
                 </div>
 
                 {/* Text */}
                 <h2 className="text-2xl sm:text-3xl font-black text-[#1A1A1A] uppercase tracking-tight mb-3 leading-none">
-                  Confirm Delete
+                  Archive Supplier
                 </h2>
                 <p className="text-sm font-medium text-[#57534E] mb-8 leading-relaxed">
-                  Are you sure you want to permanently remove <span className="font-bold text-[#1A1A1A]">"{deleteModalConfig.supplier?.company_name}"</span> from your directory? This action cannot be undone.
+                  Are you sure you want to archive <span className="font-bold text-[#1A1A1A]">"{deleteModalConfig.supplier?.company_name}"</span>? It will be moved to archives.
                 </p>
 
                 {/* Buttons */}
@@ -853,9 +809,9 @@ function Suppliers() {
                   <button 
                     type="button"
                     onClick={confirmDelete}
-                    className="w-full flex justify-center items-center gap-1.5 px-4 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-md transition-all hover:scale-[1.02] active:scale-95 bg-[#D96B5E] hover:bg-[#C45A4D] text-[#FFFFFF] cursor-pointer"
+                    className="w-full flex justify-center items-center gap-1.5 px-4 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-md transition-all hover:scale-[1.02] active:scale-95 bg-[#7BB8A7] hover:bg-[#6BA797] text-[#FFFFFF] cursor-pointer"
                   >
-                    <Archive size={16} /> Delete
+                    <Archive size={16} /> Archive
                   </button>
                 </div>
               </div>
@@ -895,138 +851,6 @@ function Suppliers() {
             </div>
             <div className="h-1 bg-[#333333] w-full">
               <div className={`h-full animate-progress-bar ${toast.type === "error" ? "bg-[#D96B5E]" : "bg-[#7BB8A7]"}`}></div>
-            </div>
-          </div>
-        )}
-
-        {/* --- ARCHIVED PRODUCTS MODAL --- */}
-        {isArchivedModalOpen && (
-          <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1A1A1A]/40 backdrop-blur-sm ${archivedModalClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}>
-            <div className={`bg-[#FFFFFF] w-full max-w-3xl rounded-3xl shadow-2xl flex flex-col max-h-[85vh] ${archivedModalClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
-              
-              <div className="p-6 border-b border-[#E7E5E4] bg-[#FAF7F2] rounded-t-3xl flex items-center justify-between shrink-0">
-                <div>
-                  <h2 className="text-xl font-black text-[#1A1A1A]">Archived Products</h2>
-                  <p className="text-xs text-[#57534E] font-medium mt-1">Manage permanently deleted or restored items</p>
-                </div>
-                <button onClick={closeArchivedModal} className="text-[#57534E] hover:text-[#1A1A1A] p-2 bg-transparent rounded-full hover:bg-[#EFE9DF] transition-all cursor-pointer">
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain p-6">
-                {archivedLoading ? (
-                  <div className="flex items-center justify-center py-16">
-                    <div className="w-8 h-8 border-4 border-[#E7E5E4] border-t-[#1A1A1A] rounded-full animate-spin"></div>
-                  </div>
-                ) : archivedProducts.length === 0 ? (
-                  <div className="py-16 text-center">
-                    <ArchiveRestore size={48} className="mx-auto text-[#A8A29E] mb-4" />
-                    <p className="text-[#57534E] font-bold text-lg">No archived products</p>
-                    <p className="text-[#A8A29E] text-sm mt-1">Archived items will appear here.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                      <colgroup>
-                        <col className="w-[20%]" />
-                        <col className="w-[35%]" />
-                        <col className="w-[15%]" />
-                        <col className="w-[15%]" />
-                        <col className="w-[15%]" />
-                      </colgroup>
-                      <thead>
-                        <tr className="border-b border-[#E7E5E4]">
-                          <th className="py-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#57534E]">SKU</th>
-                          <th className="py-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#57534E]">Product</th>
-                          <th className="py-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#57534E]">Cost</th>
-                          <th className="py-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#57534E]">Stock</th>
-                          <th className="py-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#57534E] text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#E7E5E4]">
-                        {archivedProducts.map(p => (
-                          <tr key={p.id} className="hover:bg-[#FAF7F2]/50 transition-colors">
-                            <td className="py-4 px-4">
-                              <span className="font-mono text-xs font-bold text-[#57534E] bg-[#EFE9DF] px-2 py-1 rounded border border-[#E7E5E4]">{p.sku}</span>
-                            </td>
-                            <td className="py-4 px-4">
-                              <span className="font-bold text-[#1A1A1A]">{p.name}</span>
-                              <span className="text-xs text-[#57534E] block">{p.category_name}</span>
-                            </td>
-                            <td className="py-4 px-4 text-sm font-bold text-[#1A1A1A]">₱{p.cost_price}</td>
-                            <td className="py-4 px-4">
-                              <span className="text-sm font-black text-[#D96B5E]">{p.stock}</span>
-                            </td>
-                            <td className="py-4 px-4 text-right">
-                              <div className="flex justify-end gap-2">
-                                <button
-                                  onClick={() => handleUnarchive(p.id)}
-                                  className="px-3 py-2 bg-[#C3ECE3]/40 border border-[#C3ECE3] text-[#7BB8A7] rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-[#C3ECE3]/60 transition-all cursor-pointer flex items-center gap-1"
-                                >
-                                  <ArchiveRestore size={14} /> Restore
-                                </button>
-                                <button
-                                  onClick={() => setPermDeleteTarget(p.id)}
-                                  className="px-3 py-2 bg-[#FAD2CB]/40 border border-[#FAD2CB] text-[#D96B5E] rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-[#FAD2CB]/60 transition-all cursor-pointer flex items-center gap-1"
-                                >
-                                  <Archive size={14} /> Delete
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-
-              <div className="p-4 border-t border-[#E7E5E4] bg-[#FAF7F2] rounded-b-3xl flex justify-end shrink-0">
-                <button onClick={closeArchivedModal} className="px-6 py-2.5 bg-[#FFFFFF] border border-[#E7E5E4] text-[#1A1A1A] rounded-xl font-black uppercase text-xs tracking-widest shadow-sm hover:bg-[#EFE9DF] transition-colors cursor-pointer">
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* --- PERMANENT DELETE CONFIRMATION --- */}
-        {permDeleteTarget && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-[#1A1A1A]/40 backdrop-blur-sm animate-backdrop-in">
-            <div className="bg-[#FFFFFF] rounded-[2rem] w-full max-w-sm p-8 pt-16 shadow-2xl flex flex-col items-center text-center relative overflow-hidden animate-modal-in">
-              <div className="absolute top-0 left-0 w-full h-24 z-0 bg-[#D96B5E]" />
-              <div className="absolute -top-12 -right-8 w-36 h-36 rounded-full bg-[#FFFFFF]/20 z-10 pointer-events-none" />
-
-              <div className="relative z-20 flex flex-col items-center mt-2 w-full">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center mb-6 border-[6px] shadow-sm bg-[#FFFFFF] border-[#FAD2CB] text-[#D96B5E]">
-                  <AlertCircle size={44} strokeWidth={2.5} />
-                </div>
-
-                <h2 className="text-2xl sm:text-3xl font-black text-[#1A1A1A] uppercase tracking-tight mb-3 leading-none">
-                  Delete Permanently?
-                </h2>
-                <p className="text-sm font-medium text-[#57534E] mb-8 leading-relaxed">
-                  This action cannot be undone. All transaction history linked to this product will be permanently removed.
-                </p>
-
-                <div className="w-full flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPermDeleteTarget(null)}
-                    className="w-full px-4 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-sm transition-all hover:bg-[#EFE9DF] bg-[#FAF7F2] border border-[#E7E5E4] text-[#1A1A1A] cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handlePermanentDelete}
-                    className="w-full flex justify-center items-center gap-1.5 px-4 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-md transition-all hover:scale-[1.02] active:scale-95 bg-[#D96B5E] hover:bg-[#C45A4D] text-[#FFFFFF] cursor-pointer"
-                  >
-                    <Archive size={16} /> Delete Forever
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         )}
