@@ -83,6 +83,13 @@ def login_view(request):
         elif attempt.attempts >= 3:
             attempt.locked_until = now + timedelta(minutes=5)
         attempt.save()
+        if attempt.locked_until:
+            remaining = int((attempt.locked_until - now).total_seconds())
+            return Response({
+                'error': f'Account locked. Try again in {remaining} seconds.',
+                'locked_until': attempt.locked_until.isoformat(),
+                'remaining_seconds': remaining,
+            }, status=status.HTTP_429_TOO_MANY_REQUESTS)
         remaining_attempts = max(0, 3 - attempt.attempts)
         return Response({
             'error': 'Invalid email or password.',
