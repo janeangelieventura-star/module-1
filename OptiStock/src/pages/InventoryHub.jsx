@@ -5,6 +5,7 @@ import DashboardLayout, { useSidebar } from "../context/DashboardLayout";
 import NotificationDetailModal from "../components/NotificationDetailModal";
 import { useWebSocket } from "../context/WebSocketProvider";
 import { showSignoutConfirm } from "../utils/swalHelper";
+import ArchivesModal from "../components/ArchivesModal";
 import {
   PackageSearch,
   Search,
@@ -84,6 +85,10 @@ function InventoryHub() {
   const [archivedModalClosing, setArchivedModalClosing] = useState(false);
   const [archivedProducts, setArchivedProducts] = useState([]);
   const [archivedLoading, setArchivedLoading] = useState(false);
+
+  // Archives Modal (Products + Suppliers + Categories)
+  const [isArchivesModalOpen, setIsArchivesModalOpen] = useState(false);
+  const [archivesModalClosing, setArchivesModalClosing] = useState(false);
 
   // Permanent Delete Confirmation
   const [permDeleteTarget, setPermDeleteTarget] = useState(null);
@@ -594,14 +599,13 @@ function InventoryHub() {
                   <p className="text-xs font-bold text-[#A8A29E] uppercase tracking-wider mt-0.5">{currentUser.role || ''}</p>
                 </div>
 
-                <Link
-                  to="/archives"
-                  onClick={() => setIsProfileDropdownOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-[#1A1A1A] hover:bg-[#FAF7F2] transition-all border-b border-[#E7E5E4] text-left cursor-pointer"
+                <button
+                  onClick={() => { setIsProfileDropdownOpen(false); setIsArchivesModalOpen(true); setArchivesModalClosing(false); }}
+                  className="flex items-center gap-3 px-4 py-3.5 text-sm font-bold text-[#1A1A1A] hover:bg-[#FAF7F2] transition-all border-b border-[#E7E5E4] text-left cursor-pointer w-full"
                 >
                   <ArchiveRestore size={18} className="text-[#57534E]" />
                   View Archives
-                </Link>
+                </button>
 
                 <button
                   onClick={() => { setIsProfileDropdownOpen(false); showSignoutConfirm(api, navigate); }}
@@ -1322,6 +1326,13 @@ function InventoryHub() {
           </div>
         </div>
       )}
+
+      {/* Archives Modal */}
+      <ArchivesModal
+        isOpen={isArchivesModalOpen}
+        isClosing={archivesModalClosing}
+        onClose={() => { setArchivesModalClosing(true); setTimeout(() => { setIsArchivesModalOpen(false); setArchivesModalClosing(false); }, 300); }}
+      />
 
       <style>{`
         /* EXACT Scrollbar styles */
