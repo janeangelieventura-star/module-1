@@ -119,10 +119,10 @@ class Product(models.Model):
     sku = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=200)
     category = models.ForeignKey(
-        Category, on_delete=models.CASCADE, db_column='category_id'
+        Category, on_delete=models.SET_NULL, null=True, blank=True, db_column='category_id'
     )
     supplier = models.ForeignKey(
-        Supplier, on_delete=models.CASCADE, db_column='supplier_id'
+        Supplier, on_delete=models.SET_NULL, null=True, blank=True, db_column='supplier_id'
     )
     cost_price = models.DecimalField(max_digits=12, decimal_places=2)
     selling_price = models.DecimalField(max_digits=12, decimal_places=2)

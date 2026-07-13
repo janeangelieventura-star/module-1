@@ -191,7 +191,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
                 {'error': f'Cannot delete "{instance.name}". There are {instance.product_count} products assigned to this category.'},
                 status=status.HTTP_409_CONFLICT,
             )
-        return super().destroy(request, *args, **kwargs)
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM categories WHERE id = %s", [instance.id])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class SupplierViewSet(viewsets.ModelViewSet):
@@ -210,7 +212,9 @@ class SupplierViewSet(viewsets.ModelViewSet):
                 {'error': f'Cannot delete "{instance.company_name}". There are {instance.products_supplied} products linked to this supplier.'},
                 status=status.HTTP_409_CONFLICT,
             )
-        return super().destroy(request, *args, **kwargs)
+        with connection.cursor() as cursor:
+            cursor.execute("DELETE FROM suppliers WHERE id = %s", [instance.id])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
