@@ -14,7 +14,8 @@ import {
   PackageSearch,
   CheckCircle2,
   TrendingUp,
-  Activity
+  Activity,
+  Receipt
 } from "lucide-react";
 
 function LoginPage() {
@@ -28,10 +29,12 @@ function LoginPage() {
   const navigate = useNavigate();
 
   const [stats, setStats] = useState({ total_active_items: 0, low_stock_count: 0, total_inventory_value: 0 });
+  const [posStats, setPosStats] = useState({ order_count: 0, total_sales: '0.00', total_items: 0 });
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (!params.get('locked')) {
       api.getDashboardStats().then(setStats).catch(() => {});
+      api.getPosSalesToday().then(setPosStats).catch(() => {});
     }
   }, []);
 
@@ -396,7 +399,30 @@ function LoginPage() {
               </div>
             </div>
 
-            {/* Shape 4: Large Pink/Orange Semi-Circle */}
+            {/* Shape 4: POS Doodle (Cash Register / Receipt) */}
+            <div className="group absolute left-[295px] bottom-[130px] w-[100px] h-[80px] z-20 cursor-pointer">
+              <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-3 opacity-0 translate-y-4 scale-95 group-hover:opacity-100 group-hover:translate-y-0 group-hover:scale-100 transition-all duration-500 pointer-events-none z-50 flex flex-col items-center ${bouncyEase}`}>
+                <div className="bg-white px-4 py-2.5 rounded-2xl shadow-xl border border-[#E7E5E4] flex items-center gap-2 whitespace-nowrap">
+                  <Receipt size={16} className="text-[#7BB8A7]" />
+                  <div>
+                    <p className="text-[9px] uppercase font-black text-[#A8A29E] tracking-wider leading-none">Today's POS Sales</p>
+                    <p className="text-sm font-black text-[#1A1A1A] leading-tight">₱{parseFloat(posStats.total_sales).toLocaleString()} ({posStats.order_count} order{posStats.order_count !== 1 ? 's' : ''})</p>
+                  </div>
+                </div>
+                <div className="w-3 h-3 bg-white border-b border-r border-[#E7E5E4] transform rotate-45 -mt-1.5"></div>
+              </div>
+              <div className="w-full h-full bg-[#FFFFFF] rounded-xl shadow-lg border-2 border-[#1A1A1A] relative overflow-hidden">
+                <div className="absolute top-2.5 left-3 w-[35px] h-[3px] bg-[#1A1A1A]"></div>
+                <div className="absolute top-[30px] left-3 w-[25px] h-[2px] bg-[#A8A29E]"></div>
+                <div className="absolute top-[42px] left-3 w-[30px] h-[2px] bg-[#A8A29E]"></div>
+                <div className="absolute top-[54px] left-3 w-[20px] h-[2px] bg-[#A8A29E]"></div>
+                <div className="absolute -top-2 -right-2 w-5 h-5 bg-[#D96B5E] rounded-full border-2 border-[#1A1A1A] flex items-center justify-center text-[8px] font-black text-white">$</div>
+                <div className="absolute -left-1.5 bottom-3 w-3 h-3 bg-[#7BB8A7] rounded-full border-2 border-[#1A1A1A]"></div>
+                <div className="absolute right-2 bottom-2 w-8 h-[1px] bg-[#1A1A1A] rotate-[-25deg]"></div>
+              </div>
+            </div>
+
+            {/* Shape 5: Large Pink/Orange Semi-Circle */}
             <div className="group absolute left-[0px] bottom-0 w-[275px] h-[140px] z-30 cursor-pointer">
               
               {/* Tooltip / Thought Bubble */}
