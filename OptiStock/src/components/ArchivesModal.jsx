@@ -248,7 +248,7 @@ export default function ArchivesModal({ isOpen, isClosing, onClose }) {
   return (
     <>
       <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#1A1A1A]/40 backdrop-blur-sm ${isClosing ? 'animate-backdrop-out' : 'animate-backdrop-in'}`}>
-        <div className={`bg-[#FFFFFF] w-full max-w-4xl rounded-3xl shadow-2xl flex flex-col max-h-[85vh] ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
+        <div className={`bg-[#FFFFFF] w-full max-w-4xl rounded-3xl shadow-2xl flex flex-col h-[500px] sm:h-[550px] lg:h-[600px] ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
 
           {/* Header */}
           <div className="p-6 border-b border-[#E7E5E4] bg-[#FAF7F2] rounded-t-3xl flex items-center justify-between shrink-0">
