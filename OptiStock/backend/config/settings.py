@@ -65,10 +65,14 @@ CHANNEL_LAYERS = {
 POS_API_URL = config('POS_API_URL', default='http://127.0.0.1:8002/api')
 
 CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://localhost:3000',
+    'DJANGO_CORS_ORIGINS',
+    default='http://localhost:5173,http://localhost:3000,https://optistock-inv-26.web.app',
     cast=lambda v: [s.strip() for s in v.split(',')],
 )
+# Always include Firebase hosting URL
+FIREBASE_URL = 'https://optistock-inv-26.web.app'
+if FIREBASE_URL not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append(FIREBASE_URL)
 
 CORS_ALLOW_CREDENTIALS = True
 
