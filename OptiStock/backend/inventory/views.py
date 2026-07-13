@@ -97,6 +97,36 @@ def login_view(request):
         }, status=status.HTTP_401_UNAUTHORIZED)
 
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def check_lock_view(request):
+    """Lightweight endpoint for frontend to poll account lock status."""
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return Response({'authenticated': False})
+
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return Response({'authenticated': False})
+
+    try:
+        attempt = LoginAttempt.objects.get(email__iexact=user.email)
+    except LoginAttempt.DoesNotExist:
+        return Response({'locked': False, 'authenticated': True})
+
+    now = timezone.now()
+    if attempt.locked_until and attempt.locked_until > now:
+        remaining = int((attempt.locked_until - now).total_seconds())
+        return Response({
+            'locked': True,
+            'remaining_seconds': remaining,
+            'locked_until': attempt.locked_until.isoformat(),
+        })
+
+    return Response({'locked': False, 'authenticated': True})
+
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @csrf_exempt
@@ -165,7 +195,25 @@ def pos_sales_view(request):
     if request.method == 'POST':
         serializer = PosSaleSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            sale = serializer.save()
+            try:
+                from channels.layers import get_channel_layer
+                from asgiref.sync import async_to_sync
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)('events', {
+                    'type': 'event_message',
+                    'data': {
+                        'type': 'pos_sale',
+                        'action': 'created',
+                        'model': 'PosSale',
+                        'total_amount': str(sale.total_amount),
+                        'cashier_name': sale.cashier_name or 'POS',
+                        'sale_id': sale.id,
+                        'item_count': sale.item_count or 1,
+                    }
+                })
+            except Exception:
+                pass
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

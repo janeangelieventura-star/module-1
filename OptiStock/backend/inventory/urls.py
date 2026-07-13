@@ -17,6 +17,7 @@ router.register(r'dashboard/low-stock-alerts', views.LowStockAlertViewSet)
 
 urlpatterns = [
     path('login/', views.login_view, name='login'),
+    path('check-lock/', views.check_lock_view, name='check-lock'),
     path('logout/', views.logout_view, name='logout'),
     path('me/', views.me_view, name='me'),
     path('pos-sales/', views.pos_sales_view, name='pos-sales'),
